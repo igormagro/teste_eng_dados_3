@@ -5,7 +5,7 @@ from pyspark.sql.types import (
     StringType, IntegerType, DoubleType, DateType
 )
 
-from ETL.script import to_bronze, to_silver  # ajuste o import ao seu módulo
+from ETL.script import to_bronze, to_silver
 
 
 SCHEMA = StructType([
