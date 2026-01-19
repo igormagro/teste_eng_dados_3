@@ -1,0 +1,36 @@
+Desenho de Arquitetura
+
+Serviços Utilizados:
+* AWS Database Migration Service (DMS)
+* AWS Glue
+* Amazon S3
+* AWS Lake Formation
+* AWS Step Functions
+* Amazon Event Bridge
+
+Ingestão
+Utilizaremos o AWS Database Migration Service (DMS) para realizar a ingestão dos dados provenientes do banco MySQL. O DMS permite configurar fontes de dados tanto em ambientes cloud quanto on-premise, operando em modo Full Load + CDC (Change Data Capture).
+Após a carga inicial, o serviço passa a ler continuamente o binlog do MySQL, capturando eventos de inserção, atualização e deleção. Esses eventos são persistidos diretamente na camada Bronze do Data Lake (S3), no formato Parquet, particionados por data e tabela, preservando o histórico completo das alterações.
+
+Processamento
+O processamento será realizado por meio de AWS Glue Jobs em Spark. Para otimizar escrita, leitura analítica e suportar operações de upsert de forma eficiente, os dados serão persistidos utilizando o formato Apache Iceberg.
+Na camada Silver, os dados provenientes da Bronze serão normalizados, validados e deduplicados, sendo convertidos em tabelas Iceberg que representam o estado atual dos cadastros de clientes. Eventos CDC serão consolidados por chave primária e timestamp, aplicando operações de merge para refletir corretamente inserções, atualizações e exclusões.
+Na camada Gold, serão construídas tabelas orientadas ao negócio, como visões consolidadas de clientes, agregações e métricas operacionais. Essas tabelas servirão diretamente aos consumidores analíticos (Athena, BI, APIs).
+
+Orquestração
+A orquestração do pipeline será realizada por meio do AWS Step Functions, que atuará como coordenador central dos fluxos de ingestão e processamento entre as camadas do Data Lake.
+O fluxo orquestrado inicia-se a partir da chegada de novos arquivos na camada Bronze, evento que pode ser detectado via Amazon EventBridge ou notificações do S3. A partir desse gatilho, a Step Function executa de forma sequencial e controlada:
+1. O job do Glue responsável por processar a Bronze e atualizar a camada Silver de forma incremental.
+2. Após a conclusão bem-sucedida, os jobs que constroem as tabelas da camada Gold a partir da Silver.
+
+Governança de Acesso a Nível de Usuário
+A governança de acesso aos dados será implementada por meio do AWS Lake Formation, integrado ao IAM Identity Center, permitindo controle fino de permissões em nível de usuário e grupo sobre todas as camadas do Data Lake.
+Os usuários acessarão os dados por meio de ferramentas analíticas como Amazon Athena ou aplicações internas, autenticados via Identity Center. A partir disso, o Lake Formation atuará como a camada central de autorização, controlando:
+* Acesso por tabela (ex.: permitir que apenas determinados grupos consultem dados da camada Silver ou Gold)
+* Acesso por coluna, restringindo campos sensíveis como CPF, e-mail e telefone
+* Acesso por linha, permitindo que cada usuário ou grupo visualize apenas subconjuntos específicos dos dados, como clientes de uma determinada região.
+
+Essa abordagem possibilita que diferentes perfis de usuários consumam o mesmo lake físico, porém com visões lógicas distintas, de acordo com seu papel organizacional.
+* Analistas de marketing podem acessar apenas dados agregados da camada Gold, sem campos sensíveis
+* Usuários operacionais podem visualizar registros completos apenas de sua região
+* Equipes técnicas podem ter acesso amplo às camadas Silver e Bronze para fins de auditoria e reprocessamento

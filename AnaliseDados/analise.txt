@@ -1,0 +1,15 @@
+Q: Identifique os 5 clientes que mais sofreram atualizações na base.
+A: Os clientes que mais sofreram atualizações foram:
+|   cod_cliente |  num_atualizacao |
+|---------------|------------------|
+|           396 |                5 |
+|           479 |                5 |
+|           878 |                5 |
+|           855 |                4 |
+|            93 |                3 |
+
+
+Q: Calcule a média de idade dos clientes.
+A: A idade média dos clientes é de 50 anos.
+
+
