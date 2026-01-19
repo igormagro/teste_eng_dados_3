@@ -1,3 +1,5 @@
+from datetime import date
+
 import pytest
 from pyspark.sql import SparkSession
 from pyspark.sql.types import (
@@ -38,8 +40,8 @@ def test_happy_path_dedup_and_valid_phone(spark):
     Testa o caminho feliz para deduplicação e validação de telefone.
     """
     data = [
-        (1, "Ana", None, "SP", "Rua A", 10, "(11)99999-1234", "2020-01-01", "2024-01-01", "PF", 1000.0),
-        (1, "Ana", None, "SP", "Rua A", 10, "(11)88888-0000", "2020-01-01", "2023-01-01", "PF", 900.0),
+        (1, "Ana", None, "SP", "Rua A", 10, "(11)99999-1234", date(2020, 1, 1), date(2024, 1, 1), "PF", 1000.0),
+        (1, "Ana", None, "SP", "Rua A", 10, "(11)88888-0000", date(2020, 1, 1), date(2023, 1, 1), "PF", 900.0),
     ]
 
     df = spark.createDataFrame(data, SCHEMA)
@@ -58,7 +60,7 @@ def test_invalid_phone_becomes_null(spark):
     Testa que um telefone inválido se torna None.
     """
     data = [
-        (2, "Bruno", None, "RJ", "Rua B", 20, "11999991234", "1995-05-05", "2024-01-01", "PF", 2000.0),
+        (2, "Bruno", None, "RJ", "Rua B", 20, "11999991234", date(1995, 5, 5), date(2024, 1, 1), "PF", 2000.0),
     ]
 
     df = spark.createDataFrame(data, SCHEMA)
@@ -75,8 +77,8 @@ def test_edge_case_same_update_date(spark):
     Deve manter apenas um registro.
     """
     data = [
-        (3, "Carla", None, "MG", "Rua C", 30, "(31)99999-0000", "1990-01-01", "2024-01-01", "PF", 3000.0),
-        (3, "Carla", None, "MG", "Rua C", 30, "(31)99999-1111", "1990-01-01", "2024-01-01", "PF", 3100.0),
+        (3, "Carla", None, "MG", "Rua C", 30, "(31)99999-0000", date(1990, 1, 1), date(2024, 1, 1), "PF", 3000.0),
+        (3, "Carla", None, "MG", "Rua C", 30, "(31)99999-1111", date(1990, 1, 1), date(2024, 1, 1), "PF", 3100.0),
     ]
 
     df = spark.createDataFrame(data, SCHEMA)
@@ -94,7 +96,7 @@ def test_null_phone_is_preserved(spark):
     Testa que um telefone None permanece None.
     """
     data = [
-        (4, "Daniela", None, "SP", "Rua D", 40, None, "1980-01-01", "2024-01-01", "PF", 4000.0),
+        (4, "Daniela", None, "SP", "Rua D", 40, None, date(1980, 1, 1), date(2024, 1, 1), "PF", 4000.0),
     ]
 
     df = spark.createDataFrame(data, SCHEMA)

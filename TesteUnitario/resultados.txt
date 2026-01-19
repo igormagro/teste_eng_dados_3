@@ -1,0 +1,12 @@
+============================= test session starts ==============================
+platform darwin -- Python 3.12.9, pytest-9.0.2, pluggy-1.6.0 -- /Users/igormagro/develop/job-applications/itau/teste_eng_dados_3/.venv/bin/python
+cachedir: .pytest_cache
+rootdir: /Users/igormagro/develop/job-applications/itau/teste_eng_dados_3
+collecting ... collected 4 items
+
+TesteUnitario/unit_test.py::test_happy_path_dedup_and_valid_phone PASSED [ 25%]
+TesteUnitario/unit_test.py::test_invalid_phone_becomes_null PASSED       [ 50%]
+TesteUnitario/unit_test.py::test_edge_case_same_update_date PASSED       [ 75%]
+TesteUnitario/unit_test.py::test_null_phone_is_preserved PASSED          [100%]
+
+============================== 4 passed in 7.95s ===============================
