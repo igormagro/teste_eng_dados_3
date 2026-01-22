@@ -51,6 +51,8 @@ def to_silver(df_bronze: DataFrame) -> DataFrame:
     - deduplicação por cod_cliente + dt_atualizacao
     - validação de telefone
     """
+
+    #  na leitura, utilizar dt_atualizacao como particao
     window = Window.partitionBy("cod_cliente").orderBy(F.col("dt_atualizacao").desc())
 
     df = (
@@ -80,9 +82,10 @@ def run_job(
     df_raw = spark.read.schema(SCHEMA).option("header", "true").csv(file_path)
 
     df_bronze = to_bronze(df_raw)
+    # criar checkpoint 
     df_silver = to_silver(df_bronze)
 
-    df_bronze.write.mode("append").partitionBy("anomesdia").parquet(bronze_path)
+    df_bronze.write.mode("append").partitionBy("anomesdia").parquet(bronze_path) # <- overwrite
 
     df_silver.write.mode("append").partitionBy("anomesdia").parquet(silver_path)
 
